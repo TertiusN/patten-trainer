@@ -47,12 +47,18 @@ export default function HomePage({ onStartGame }) {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">Welcome to Fractal Trainer</h1>
+      <div className="flex items-center mb-6">
+        <img src="/logo.png" alt="Fractal Trainer Logo" className="w-12 h-12 mr-4" />
+        <h1 className="text-3xl font-bold">Fractal Trainer V1</h1>
+      </div> 
       
       <p className="mb-6">
-        Fractal Trainer is a game designed to help you improve your cryptocurrency price prediction skills.
-        You'll be shown historical price data and asked to predict the next price movement.
-        Test your analysis skills and see how well you can read the market!
+        Pattern recognition game for crypto trading. Choose your timeframes, context depth and ticker.
+        <br />
+        <br/>Predict the next candle and earn points:
+        <br /> - Earn 100 Points for correct direction
+        <br /> - Earn bonus points for accuracy
+        <br /> - Lose 50 points for incorrect direction
       </p>
 
       <div className="mb-6">
@@ -101,7 +107,7 @@ export default function HomePage({ onStartGame }) {
 
       <button
         onClick={handleStartGame}
-        className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+        className="btn bg-black text-white px-4 py-2 rounded hover:bg-green-500 transition duration-300"
       >
         Start Game
       </button>

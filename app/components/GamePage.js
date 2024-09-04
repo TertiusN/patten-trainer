@@ -107,12 +107,29 @@ export default function GamePage({ settings }) {
 
   const submitScore = async () => {
     if (!playerName || scoreSubmitted) return;
-
+  
     try {
-      await axios.post('/api/leaderboard', { name: playerName, score });
-      setScoreSubmitted(true); // Disable further submissions
-      setShowLeaderboard(true); // Automatically show leaderboard after submission
-      fetchLeaderboard(); // Refresh leaderboard after submitting the score
+      const response = await fetch('/api/leaderboard', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          playerName,
+          score,
+          rounds,
+        }),
+      });
+  
+      const data = await response.json();
+  
+      if (data.message === 'Score submitted successfully') {
+        setScoreSubmitted(true);
+        setShowLeaderboard(true);
+        setLeaderboard(data.leaderboard); // Update the local leaderboard state
+      } else {
+        console.error('Failed to submit score:', data.error);
+      }
     } catch (error) {
       console.error('Error submitting score:', error);
     }
@@ -169,10 +186,12 @@ export default function GamePage({ settings }) {
         const bonusPoints = 200 * Math.exp(-3 * accuracy);
         
         pointsGained += bonusPoints;
+      } else {
+        pointsGained -= 50; // Lose 50 points for incorrect prediction
       }
 
-      // Update the score
-      const newScore = score + pointsGained;
+      // Update the score, ensuring it doesn't go below 0
+      const newScore = Math.max(0, score + pointsGained);
       setScore(newScore);
 
       // Update round score
@@ -340,38 +359,29 @@ export default function GamePage({ settings }) {
           
           <div className="text-center">
             <div className="inline-flex">
-              <label className="mr-2">
-                <input
+              <label className="mr-3">
+                <input className="mr-2"
                   type="radio"
                   value="Green"
                   checked={prediction.direction === 'Green'}
                   onChange={(e) => setPrediction({ ...prediction, direction: e.target.value })}
                 />
-                Green
+                 Long 
               </label>
-              <label className="ml-2">
-                <input
+              <label className="ml-3">
+                <input className="mr-2"
                   type="radio"
                   value="Red"
                   checked={prediction.direction === 'Red'}
                   onChange={(e) => setPrediction({ ...prediction, direction: e.target.value })}
                 />
-                Red
+                 Short 
               </label>
             </div>
             <div className="slider-container">
               <input
                 className="border p-2 m-2 w-1/2"
                 type="range"
-                min="0"
-                max={maxDelta}
-                step="0.01"
-                value={prediction.percentage}
-                onChange={handleSliderChange}
-              />
-              <input
-                className="border p-2 m-2"
-                type="number"
                 min="0"
                 max={maxDelta}
                 step="0.01"

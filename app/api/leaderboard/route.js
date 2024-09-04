@@ -1,10 +1,9 @@
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import path from 'path';
+import { validateScore, calculateServerSideScore } from '../../utils/anti-cheat';
 
-// Get the path to the leaderboard file
 const leaderboardFile = path.join(process.cwd(), 'data', 'leaderboard.json');
 
-// Helper to read leaderboard data
 const readLeaderboard = () => {
   if (!existsSync(leaderboardFile)) {
     writeFileSync(leaderboardFile, JSON.stringify([]), 'utf-8');
@@ -18,47 +17,50 @@ const readLeaderboard = () => {
   }
 };
 
-// Helper to write leaderboard data
 const writeLeaderboard = (data) => {
   writeFileSync(leaderboardFile, JSON.stringify(data, null, 2), 'utf-8');
 };
 
-export async function GET(req, res) {
+export async function GET(req) {
   const leaderboard = readLeaderboard();
   return new Response(JSON.stringify(leaderboard), {
     status: 200,
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
   });
 }
 
-export async function POST(req, res) {
+export async function POST(req) {
   const body = await req.json();
-  const { name, score } = body;
+  const { playerName, score, rounds } = body;
 
-  if (!name || typeof score !== 'number') {
-    return new Response(JSON.stringify({ error: 'Invalid name or score' }), {
+  // Validate the score
+  if (!validateScore(score, rounds)) {
+    return new Response(JSON.stringify({ error: 'Invalid score detected' }), {
       status: 400,
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
     });
   }
 
-  const leaderboard = readLeaderboard();
-  leaderboard.push({ name, score });
-  leaderboard.sort((a, b) => b.score - a.score); // Sort by score, highest first
-  
-  // Limit the leaderboard to top 20 scores
-  const topScores = leaderboard.slice(0, 10);
+  // Calculate the score on the server side
+  const serverCalculatedScore = calculateServerSideScore(rounds);
 
+  // Compare the server-calculated score with the submitted score
+  if (Math.abs(serverCalculatedScore - score) > 0.01) {
+    return new Response(JSON.stringify({ error: 'Score mismatch detected' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  // Add the score to the leaderboard
+  const leaderboard = readLeaderboard();
+  leaderboard.push({ name: playerName, score: serverCalculatedScore });
+  leaderboard.sort((a, b) => b.score - a.score);
+  const topScores = leaderboard.slice(0, 10);
   writeLeaderboard(topScores);
 
-  return new Response(JSON.stringify({ message: 'Score added successfully!' }), {
-    status: 201,
-    headers: {
-      'Content-Type': 'application/json',
-    },
+  return new Response(JSON.stringify({ message: 'Score submitted successfully', leaderboard: topScores }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
   });
 }
