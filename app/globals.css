@@ -3,41 +3,49 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  --foreground-rgb: 0, 0, 0; /* Black text */
+  --background-rgb: 255, 255, 255; /* White background */
 }
 
-@media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: light) {
   :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+    --foreground-rgb: 255, 255, 255; /* White text in dark mode */
+    --background-rgb: 0, 0, 0; /* Black background in dark mode */
   }
 }
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  background-color: rgb(var(--background-rgb)); /* Set to white background */
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
+
+  .btn {
+    @apply text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out m-1;
+  }
+
+  .btn:hover {
+    @apply bg-blue-600 shadow-lg; /* Darker blue and slight shadow on hover */
+  }
+
+  .btn:disabled {
+    @apply bg-gray-400 cursor-not-allowed; /* Gray background for disabled buttons */
+  }
 }
 
 .chart-container {
   max-width: 800px; 
+  margin: auto; /* Center the chart container */
+  padding: 1rem; /* Add some padding */
 }
 
 .text-center {
-  color: blue; 
+  text-align: center; /* Ensure text is centered */
+  color: rgb(var(--foreground-rgb)); /* Set text color to black */
 }
 
 .chart {

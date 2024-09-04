@@ -49,8 +49,11 @@ export async function POST(req, res) {
   const leaderboard = readLeaderboard();
   leaderboard.push({ name, score });
   leaderboard.sort((a, b) => b.score - a.score); // Sort by score, highest first
+  
+  // Limit the leaderboard to top 20 scores
+  const topScores = leaderboard.slice(0, 10);
 
-  writeLeaderboard(leaderboard);
+  writeLeaderboard(topScores);
 
   return new Response(JSON.stringify({ message: 'Score added successfully!' }), {
     status: 201,
