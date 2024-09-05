@@ -48,11 +48,19 @@ export function validateScore(score, rounds) {
 export function calculateServerSideScore(rounds) {
   let totalScore = 0;
   for (const round of rounds) {
+    let roundScore = 0;
     if (round.actual.direction.toLowerCase() === round.prediction.direction.toLowerCase()) {
       const accuracy = Math.abs(round.prediction.percentage - Math.abs(round.actual.percentage));
-      const roundScore = 100 + 200 * Math.exp(-3 * accuracy);
-      totalScore += Math.min(roundScore, MAX_SCORE_PER_ROUND); // Ensure no round exceeds MAX_SCORE_PER_ROUND
+      roundScore = 100 + 200 * Math.exp(-3 * accuracy);
+      
+    } else {
+      roundScore = -50; // Subtract 50 points for incorrect prediction
+      console.log('Bad Prediction');
     }
+    
+    roundScore = Math.min(roundScore, MAX_SCORE_PER_ROUND); // Ensure no round exceeds MAX_SCORE_PER_ROUND or goes below 0
+    console.log('Server Calculated Round score:', roundScore);
+    totalScore += roundScore;
   }
   return totalScore;
 }

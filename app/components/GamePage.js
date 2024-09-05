@@ -190,12 +190,10 @@ export default function GamePage({ settings }) {
         pointsGained -= 50; // Lose 50 points for incorrect prediction
       }
 
-      // Update the score, ensuring it doesn't go below 0
-      const newScore = Math.max(0, score + pointsGained);
-      setScore(newScore);
-
       // Update round score
       setRoundScore(pointsGained);
+
+      setScore(score + pointsGained);
 
       // Track round
       setRounds((prevRounds) => [
@@ -215,7 +213,7 @@ export default function GamePage({ settings }) {
       await sleep(1500);
 
       // Adjust countdown based on new score
-      setCountdown((prev) => prev + pointsGained / 20);
+      setCountdown((prev) => prev + pointsGained / 50);
       
       // Fetch new candle data
       fetchCandleData(settings.ticker, getRandomTimeframe(), settings.candleHistory);
@@ -254,16 +252,6 @@ export default function GamePage({ settings }) {
     setCountdown(30);
     fetchCandleData(settings.ticker, getRandomTimeframe(), settings.candleHistory);
     startCountdown(); // Start a new countdown when a new game starts
-  };
-
-  // Function to map the slider value for desired precision
-  const mapSliderValue = (value) => {
-    return value;
-  };
-
-  const handleSliderChange = (event) => {
-    const value = parseFloat(event.target.value);
-    setPrediction({ ...prediction, percentage: value });
   };
 
   return (
