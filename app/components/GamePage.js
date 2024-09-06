@@ -6,6 +6,7 @@ import Highcharts from 'highcharts';
 import dynamic from 'next/dynamic';
 import HC_stock from 'highcharts/modules/stock';
 import '../globals.css';
+import { DosSlider } from './DosCustom';
 
 HC_stock(Highcharts); // Initialize the stock module
 
@@ -35,6 +36,7 @@ export default function GamePage({ settings }) {
   const [playerName, setPlayerName] = useState('');
   const [scoreSubmitted, setScoreSubmitted] = useState(false);
   const [showPerformanceSummary, setShowPerformanceSummary] = useState(false);
+  const [showShareButton, setShowShareButton] = useState(false);
 
   // Add this function to get a random timeframe
   const getRandomTimeframe = () => {
@@ -127,12 +129,21 @@ export default function GamePage({ settings }) {
         setScoreSubmitted(true);
         setShowLeaderboard(true);
         setLeaderboard(data.leaderboard); // Update the local leaderboard state
+        // Check if the player made it to the leaderboard
+        const madeLeaderboard = data.leaderboard.some(entry => entry.name === playerName);
+        setShowShareButton(madeLeaderboard);
       } else {
         console.error('Failed to submit score:', data.error);
       }
     } catch (error) {
       console.error('Error submitting score:', error);
     }
+  };
+
+  const shareOnTwitter = () => {
+    const tweetText = `New Fractal Trainer High Score - ${score.toFixed(2)} #FRACTAL #TRAINER - https://fractal-trainer.vercel.app`;
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
+    window.open(twitterUrl, '_blank');
   };
 
   const createChartOptions = (candleData) => ({
@@ -151,14 +162,33 @@ export default function GamePage({ settings }) {
             parseFloat(candle[2]),
             parseFloat(candle[3]),
             parseFloat(candle[4])
-        ])
+        ]),
+        color: 'teal', // Color for the falling candles
+        upColor: 'teal', // Color for the rising candles
+        lineColor: 'teal', // Outline color
+        dataGrouping: {
+            approximation: 'average'
+        }
     }],
     xAxis: {
         type: 'datetime',
-        gridLineWidth: 0 // Remove grid lines
+        gridLineWidth: 0, // Remove grid lines
     },
     yAxis: {
-        gridLineWidth: 0 // Remove grid lines
+        gridLineWidth: 0, // Remove grid lines
+        title: {
+            text: 'Price', // Add title for the y-axis
+            style: {
+                color: 'yellow', // Set y-axis title color to pink
+                fontSize: '15px'
+            }
+        }
+    },
+    legend: {
+        itemStyle: {
+                color: 'yellow', // Set y-axis title color to pink
+                fontSize: '15px'
+        }
     },
     time: {
         useUTC: true // Adjust based on your data's timezone
@@ -255,130 +285,158 @@ export default function GamePage({ settings }) {
   };
 
   return (
-      <div>
-        <h1 className="text-center text-xl font-bold">Fractal Trainer v1</h1>
-        {gameOver ? (
-    <div className="text-center">
-      <p className="text-lg">Game Over! Your Final Score: {score.toFixed(2)}</p>
-      <input 
-        className="border p-2 m-2"
-        type="text" 
-        placeholder="Enter your name" 
-        value={playerName} 
-        onChange={(e) => setPlayerName(e.target.value)} 
-        disabled={scoreSubmitted} // Disable input after submission
-      />
-      <button 
-        className="btn bg-blue-500" 
-        onClick={submitScore}
-        disabled={scoreSubmitted} // Disable the button after submission
-      >
-        Submit Score to Leaderboard
-      </button>
-      <button className="btn bg-blue-500" onClick={() => setShowLeaderboard(!showLeaderboard)}>
-        {showLeaderboard ? 'Hide' : 'Show'} Leaderboard
-      </button>
-      {showLeaderboard && (
-        <div className="leaderboard">
-          <h3 className="text-lg font-bold">Leaderboard</h3>
-          <ul>
-            {leaderboard.map((entry, index) => (
-              <li key={index}>{entry.name}: {entry.score}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-      {/* Summary of each round's performance */}
-      <h3 className="text-lg font-bold mt-4">
-        <button 
-          onClick={() => setShowPerformanceSummary(!showPerformanceSummary)}
-          className="flex items-center justify-center w-full"
-        >
-          Performance Summary
-          <span className="ml-2">
-            {showPerformanceSummary ? '▲' : '▼'}
-          </span>
-        </button>
-      </h3>
-      {showPerformanceSummary && (
-        <ul className="performance-summary">
-          {rounds.map((round, index) => {
-            const { actual, prediction, score } = round;
-            const percentageColor = actual.percentage >= 0 ? 'text-green-500' : 'text-red-500';
-            return (
-              <li key={index} className="mb-2">
-                <span className="font-semibold">Round {index + 1}:</span>{' '}
-                <span className={percentageColor}>
-                  {actual.percentage.toFixed(2)}%
-                </span>
-                <br />
-                Prediction: {prediction.percentage.toFixed(2)}% 
-                Points: {score.toFixed(2)}
-              </li>
-            );
-          })}
-        </ul>
-      )}
+    <div className="container mx-auto max-w-2xl font-vt323">
+      <h1 className="text-4xl font-bold mb-4 text-center">Fractal Trainer v1.0</h1>
+      
+      {gameOver ? (
+        <div className="text-center border-2 border-white p-4">
+          <p className="text-2xl mb-4">Game Over! Final Score: {score.toFixed(2)}</p>
+          <input 
+            className="dos-input mb-2 w-full"
+            type="text" 
+            placeholder="Enter your name" 
+            value={playerName} 
+            onChange={(e) => setPlayerName(e.target.value)} 
+            disabled={scoreSubmitted}
+          />
+          <button 
+            className="dos-button mr-2"
+            onClick={submitScore}
+            disabled={scoreSubmitted}
+          >
+            Submit Score
+          </button>
+          <button 
+            className="dos-button"
+            onClick={() => setShowLeaderboard(!showLeaderboard)}
+          >
+            {showLeaderboard ? 'Hide' : 'Show'} Leaderboard
+          </button>
+          
+          {showLeaderboard && (
+            <div className="mt-4 border-2 border-white p-4">
+              <h3 className="text-2xl font-bold mb-2">Leaderboard</h3>
+              <ul>
+                {leaderboard.map((entry, index) => (
+                  <li key={index}>{entry.name}: {entry.score}</li>
+                ))}
+              </ul>
+              {showShareButton && (
+                <button 
+                  className="dos-button mt-4"
+                  onClick={shareOnTwitter}
+                >
+                  Share on Twitter
+                </button>
+              )}
+            </div>
+          )}
+          
+          <h3 className="text-2xl font-bold mt-4">
+            <button 
+              onClick={() => setShowPerformanceSummary(!showPerformanceSummary)}
+              className="dos-button w-full"
+            >
+              Performance Summary {showPerformanceSummary ? '▲' : '▼'}
+            </button>
+          </h3>
+          {showPerformanceSummary && (
+            <ul className="mt-2 border-2 border-white p-4 text-left">
+              {rounds.map((round, index) => (
+                <li key={index} className="mb-2">
+                  Round {index + 1}: {round.actual.percentage.toFixed(2)}%
+                  <br />
+                  Prediction: {round.prediction.percentage.toFixed(2)}% 
+                  <br />
+                  Points: {round.score.toFixed(2)}
+                </li>
+              ))}
+            </ul>
+          )}
 
-      <button 
-        className="btn bg-green-500 hover:bg-green-900 text-gray-800 transition duration-300 ease-in-out" 
-        onClick={() => window.location.reload()} // This will refresh the page, returning to the home screen
-      >
-        Back to Home
-      </button>
-    </div>
-  ) : (
+          <button 
+            className="dos-button mt-4"
+            onClick={() => window.location.reload()}
+          >
+            Back to Home
+          </button>
+        </div>
+      ) : (
         <>
-          <p className="text-center">Time Frame: {timeFrame}</p>
+          <p className="text-center mb-2">Time Frame: {timeFrame}</p>
           {chartOptions && (
-            <div className="chart-container">
+            <div className="chart-container border-2 border-white p-4 mb-4">
               <HighchartsReact 
-                className="chart" 
                 highcharts={Highcharts} 
-                options={chartOptions} 
+                options={{
+                  ...chartOptions,
+                  chart: {
+                    ...chartOptions.chart,
+                    backgroundColor: '#000080',
+                    style: {
+                      fontFamily: "'VT323', monospace"
+                    }
+                  },
+                  title: {
+                    style: {
+                      color: '#ffffff',
+                      fontSize: '20px'
+                    }
+                  },
+                  xAxis: {
+                    ...chartOptions.xAxis,
+                    labels: { style: { color: '#ffffff' } },
+                    lineColor: '#ffffff',
+                  },
+                  yAxis: {
+                    ...chartOptions.yAxis,
+                    labels: { style: { color: '#ffffff' } },
+                    gridLineColor: '#ffffff',
+                  },
+                  series: chartOptions.series.map(series => ({
+                    ...series,
+                    color: '#ffffff'
+                  }))
+                }}
               />
             </div>
           )}
 
-          <div className="text-center">
-            <p className="text-lg">Score: {score.toFixed(2)}</p>
-            <p className="text-lg">Countdown: {countdown.toFixed(2)} seconds</p>
+          <div className="text-center mb-4 grid grid-cols-2 gap-4">
+            <p className="text-xl col-span-2">Score: {score.toFixed(2)}</p>
+            <p className="text-xl col-span-2">Countdown: {countdown.toFixed(2)} seconds</p>
           </div>
           
-          <div className="text-center">
-            <div className="inline-flex">
-              <label className="mr-3">
-                <input className="mr-2"
-                  type="radio"
-                  value="Green"
-                  checked={prediction.direction === 'Green'}
-                  onChange={(e) => setPrediction({ ...prediction, direction: e.target.value })}
-                />
-                 Long 
-              </label>
-              <label className="ml-3">
-                <input className="mr-2"
-                  type="radio"
-                  value="Red"
-                  checked={prediction.direction === 'Red'}
-                  onChange={(e) => setPrediction({ ...prediction, direction: e.target.value })}
-                />
-                 Short 
-              </label>
+          <div className="text-center border-2 border-white p-4">
+            <div className="inline-flex mb-4">
+              <button
+                className={`mr-6 ${prediction.direction === 'Green' ? 'bg-white text-[#000080]' : ''}`}
+                onClick={() => setPrediction({ ...prediction, direction: 'Green' })}
+              >
+                LONG
+              </button>
+              <button
+                className={`${prediction.direction === 'Red' ? 'bg-white text-[#000080]' : ''}`}
+                onClick={() => setPrediction({ ...prediction, direction: 'Red' })}
+              >
+                SHORT
+              </button>
             </div>
-            <div className="slider-container">
-              <input
-                className="border p-2 m-2 w-1/2"
-                type="range"
-                min="0"
-                max={maxDelta}
-                step="0.01"
+            <div className="mb-4">
+              <DosSlider
                 value={prediction.percentage}
-                onChange={(e) => setPrediction({ ...prediction, percentage: parseFloat(e.target.value) })}
+                onChange={(value) => setPrediction({ ...prediction, percentage: value })}
+                min={0}
+                max={maxDelta}
+                step={0.01}
               />
-              <div className="text-lg">{prediction.percentage.toFixed(2)}%</div>
+              <div className="text-lg mt-2">{prediction.percentage.toFixed(2)}%</div>
             </div>
-            <button className="btn bg-blue-500 mb-4" onClick={handlePrediction} disabled={timeUp || gameOver}>
+            <button 
+              className="dos-button"
+              onClick={handlePrediction} 
+              disabled={timeUp || gameOver}
+            >
               Submit
             </button>
           </div>

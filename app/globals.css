@@ -1,22 +1,45 @@
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+body {
+  font-family: 'VT323', monospace;
+  font-size: 25px;
+  line-height: 1.2;
+}
+
+.dos-button {
+  @apply bg-[#000080] text-white border-2 border-white px-4 py-1 cursor-pointer;
+}
+
+.dos-button:hover, .dos-button:focus {
+  @apply bg-white text-[#000080];
+}
+
+.dos-input {
+  @apply bg-[#000080] text-white border-2 border-white px-2 py-1;
+}
+
+.dos-select {
+  @apply bg-[#000080] text-white border-2 border-white px-2 py-1 appearance-none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='white' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  background-size: 1.5em;
+}
+
 :root {
-  --foreground-rgb: 0, 0, 0; /* Black text */
-  --background-rgb: 255, 255, 255; /* White background */
+  --foreground-rgb: white; /* Black text */
+  --background-rgb: blue; /* White background */
 }
 
 @media (prefers-color-scheme: light) {
   :root {
-    --foreground-rgb: 255, 255, 255; /* White text in dark mode */
-    --background-rgb: 0, 0, 0; /* Black background in dark mode */
+    --foreground-rgb: white; /* Black text */
+    --background-rgb: blue; /* White background */
   }
-}
-
-body {
-  color: rgb(var(--foreground-rgb));
-  background-color: rgb(var(--background-rgb)); /* Set to white background */
 }
 
 @layer utilities {

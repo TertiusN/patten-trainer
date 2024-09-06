@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import DosSelect, { DosNumberInput } from './DosCustom';
 
 const AVAILABLE_TIMEFRAMES = ['1m', '5m', '15m', '30m', '1h', '4h', '1d'];
 const AVAILABLE_TICKERS = ['BTC', 'ETH', 'SOL'];
@@ -14,13 +15,20 @@ export default function HomePage({ onStartGame }) {
   const [leaderboard, setLeaderboard] = useState([]);
 
   const handleTimeframeChange = (timeframe) => {
+    console.log('Current selectedTimeframes:', selectedTimeframes);
+    console.log('Timeframe clicked:', timeframe);
+
     setSelectedTimeframes(prev => {
+      let newTimeframes;
       if (prev.includes(timeframe)) {
-        return prev.filter(tf => tf !== timeframe);
+        newTimeframes = prev.filter(tf => tf !== timeframe);
       } else if (prev.length < 3) {
-        return [...prev, timeframe];
+        newTimeframes = [...prev, timeframe];
+      } else {
+        newTimeframes = prev;
       }
-      return prev;
+      console.log('New selectedTimeframes:', newTimeframes);
+      return newTimeframes;
     });
   };
 
@@ -45,14 +53,16 @@ export default function HomePage({ onStartGame }) {
     });
   };
 
+  // Add this useEffect to log changes to selectedTimeframes
+  useEffect(() => {
+    console.log('selectedTimeframes updated:', selectedTimeframes);
+  }, [selectedTimeframes]);
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center mb-6">
-        <img src="/logo.png" alt="Fractal Trainer Logo" className="w-12 h-12 mr-4" />
-        <h1 className="text-3xl font-bold">Fractal Trainer V1</h1>
-      </div> 
+    <div className="container mx-auto max-w-2xl font-vt323">
+      <h1 className="text-4xl font-bold mb-6 text-center">Fractal Trainer v1.0</h1>
       
-      <p className="mb-6">
+      <p className="text-yellow-500 text-center text-xl">
         Pattern recognition game for crypto trading. Choose your timeframes, context depth and ticker.
         <br />
         <br/>Predict the next candle and earn points:
@@ -61,8 +71,8 @@ export default function HomePage({ onStartGame }) {
         <br /> - Lose 50 points for incorrect direction
       </p>
 
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold mb-2">Game Settings</h2>
+      <div className="mb-6 border-2 border-white p-4">
+        <h2 className="text-2xl font-semibold mb-2">Game Settings</h2>
         
         <div className="mb-4">
           <h3 className="font-medium mb-1">Select Timeframes (max 3):</h3>
@@ -70,7 +80,7 @@ export default function HomePage({ onStartGame }) {
             {AVAILABLE_TIMEFRAMES.map(tf => (
               <button
                 key={tf}
-                className={`px-3 py-1 rounded ${selectedTimeframes.includes(tf) ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+                className={`${selectedTimeframes.includes(tf) ? 'bg-white text-[#000080]' : ''}`}
                 onClick={() => handleTimeframeChange(tf)}
               >
                 {tf}
@@ -79,49 +89,45 @@ export default function HomePage({ onStartGame }) {
           </div>
         </div>
 
-        <div className="mb-4">
-          <h3 className="font-medium mb-1">Select Ticker:</h3>
-          <select
-            value={selectedTicker}
-            onChange={(e) => setSelectedTicker(e.target.value)}
-            className="border rounded px-2 py-1"
-          >
-            {AVAILABLE_TICKERS.map(ticker => (
-              <option key={ticker} value={ticker}>{ticker}</option>
-            ))}
-          </select>
-        </div>
-
-        <div className="mb-4">
-          <h3 className="font-medium mb-1">Candle History:</h3>
-          <input
-            type="number"
-            min="5"
-            max="30"
-            value={candleHistory}
-            onChange={(e) => setCandleHistory(Math.max(5, Math.min(30, parseInt(e.target.value))))}
-            className="border rounded px-2 py-1 w-20"
-          />
-        </div>
+    <div className="mb-4">
+        <h3 className="font-medium mb-1">Select Ticker:</h3>
+        <DosSelect
+          options={AVAILABLE_TICKERS}
+          value={selectedTicker}
+          onChange={setSelectedTicker}
+        />
       </div>
 
-      <button
-        onClick={handleStartGame}
-        className="btn bg-black text-white px-4 py-2 rounded hover:bg-green-500 transition duration-300"
-      >
-        Start Game
-      </button>
+      <div className="mb-4">
+        <h3 className="font-medium mb-1">Candle History:</h3>
+        <DosNumberInput
+          value={candleHistory}
+          onChange={setCandleHistory}
+          min={5}
+          max={30}
+        />
+      </div>
+      </div>
 
-      <button 
-        className="btn bg-blue-500 ml-4" 
-        onClick={() => setShowLeaderboard(!showLeaderboard)}
-      >
-        {showLeaderboard ? 'Hide' : 'Show'} Leaderboard
-      </button>
+      <div className="text-center">
+        <button
+          onClick={handleStartGame}
+          className="dos-button mr-4"
+        >
+          Start Game
+        </button>
+
+        <button 
+          className="dos-button"
+          onClick={() => setShowLeaderboard(!showLeaderboard)}
+        >
+          {showLeaderboard ? 'Hide' : 'Show'} Leaderboard
+        </button>
+      </div>
 
       {showLeaderboard && (
-        <div className="leaderboard mt-4">
-          <h3 className="text-lg font-bold">Leaderboard</h3>
+        <div className="mt-4 border-2 border-white p-4">
+          <h3 className="text-3xl font-bold mb-2">Leaderboard</h3>
           <ul>
             {leaderboard.map((entry, index) => (
               <li key={index}>{entry.name}: {entry.score}</li>
