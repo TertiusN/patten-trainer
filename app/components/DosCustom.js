@@ -106,6 +106,23 @@ export const DosSlider = ({ value, onChange, min, max, step }) => {
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseLeave}
         onMouseMove={handleMouseMove}
+        onTouchStart={(e) => {
+          e.preventDefault();
+          handleMouseDown();
+        }}
+        onTouchEnd={(e) => {
+          e.preventDefault();
+          handleMouseUp();
+        }}
+        onTouchMove={(e) => {
+          e.preventDefault();
+          const touch = e.touches[0];
+          const rect = e.currentTarget.getBoundingClientRect();
+          const x = touch.clientX - rect.left;
+          const percentage = x / rect.width;
+          const newValue = min + percentage * (max - min);
+          onChange(Math.min(max, Math.max(min, Number(newValue.toFixed(2)))));
+        }}
       >
         <div 
           className="h-full bg-white" 
